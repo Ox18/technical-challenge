@@ -1,0 +1,30 @@
+services:
+  ms-voycelink-ia:
+    build: ./ms-voycelink-ia
+    environment:
+      INTERNAL_API_KEY: ia-internal-key
+      FAIL_RATE: ${FAIL_RATE:-0.2}
+      SLOW_RATE: ${SLOW_RATE:-0.2}
+      SLOW_SECONDS: ${SLOW_SECONDS:-8}
+    ports: ["8000:8000"]
+
+  ms-voycelink-core:
+    build: ./ms-voycelink-core
+    depends_on: [ms-voycelink-ia]
+    environment:
+      PORT: 3000
+      IA_URL: http://ms-voycelink-ia:8000
+      IA_INTERNAL_KEY: ia-internal-key
+      FRONT_URL: http://localhost:3001
+    ports: ["3000:3000"]
+    volumes:
+      - ./ms-voycelink-core/src:/app/src
+
+  fe-voycelink-app:
+    build: ./fe-voycelink-app
+    depends_on: [ms-voycelink-core]
+    environment:
+      NEXT_PUBLIC_CORE_URL: http://localhost:3000
+    ports: ["3001:3001"]
+    volumes:
+      - ./fe-voycelink-app/src:/app/src
